@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Collisions</title>
+    </head>
+    <body>
+        <canvas id="mainCanvas" class="golden" width="1000" height="1000"></canvas>
+    </body>
+    <script type="text/javascript" src="main.js"></script>
+    <style>
+        html, body {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            padding: 0;
+            margin: 0;
+            background: #002;
+        }
+        canvas {
+            background: #EEF;
+            margin: auto;
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            display: block;
+            transition: 0.5s all;
+        }
+        @media (orientation: landscape) {
+            .golden {
+                width: 100vh;
+                height: 100vh;
+            }
+        }
+        @media (orientation: portrait) {
+            .golden {
+                width: 100vw;
+                height: 100vw;
+            }
+        }
+    </style>
+</html>
