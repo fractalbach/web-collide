@@ -79,19 +79,29 @@ class Scene {
         for (let o of this.objects.values()) {
             o.x = o.x + o.vx;
             o.y = o.y + o.vy;
-            toohigh = (o.x > w);
-            toolow = (o.x < 0);
-            if (toohigh===true || toolow===true) {
-                if (toohigh) {o.x = w - 2*(o.x - w);}
-                if (toolow)  {o.x = -o.x;}
-                o.vx = (-o.vx)
+
+            // x: too high
+            if (o.x > w) {
+                o.x  = (w - 2*(o.x - w));
+                o.vx = (-o.vx);
             }
-            toohigh = (o.y > h);
-            toolow = (o.y < 0);
-            if (toohigh===true || toolow===true) {
-                if (toohigh) {o.y = h - 2*(o.y - h);}
-                if (toolow)  {o.y = -o.y;}
+
+            // x: too low
+            if (o.x < 0) {
+                o.x  = (-o.x);
+                o.vx = (-o.vx);
+            }
+
+            // y: too high
+            if (o.y > h) {
+                o.y  = (h - 2*(o.y - h));
                 o.vy = (-o.vy)
+            }
+
+            // y: too low
+            if (o.y < 0) {
+                o.y  = (-o.y);
+                o.vy = (-o.vy);
             }
         }
     }
