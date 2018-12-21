@@ -184,18 +184,23 @@ return AVLTree;
 }());
 
 
-var runTest = ()=> {
+var runTest = (callback)=> {
 
-    // define the dataset and tests.
-    const SIZE  = 1 << 20;
-    const START = 5;
-    const STOP  = 20;
-    const nFUNC = (n) => (1<<n)
+    const NUM_TESTS = 10;
 
-    // build data set.
-    let dataset = new Array(SIZE);
-    for (let i = 0; i < SIZE; i++) {
-        dataset[i] = Math.random();
+    const TESTS = (()=>{
+        arr = Array(NUM_TESTS);
+        for (let i = 0; i < NUM_TESTS; i++) {
+            arr[i] = (i + 1) * (10**5) ;
+        };
+        return arr;
+    })();
+
+    const DATASET_SIZE = arr.slice(-1)[0];
+
+    let dataset = new Array(DATASET_SIZE);
+    for (let i = 0; i < DATASET_SIZE; i++) {
+        dataset[i] = Math.random() * 10**6;
     }
 
     // create an object to store the results in.
@@ -203,41 +208,33 @@ var runTest = ()=> {
 
     // re-use the same variable for the AVLTree.
     // We don't need to recreate nodes each time.
-    let tree = new AVLTree();
+    let tree = undefined;
 
     // run each of the tests with a different value for N.
-    for (let i=START; i<STOP; i++) {
-        let n = nFUNC(i);
+    for (let i = 0; i < NUM_TESTS; i++) {
+        let n = TESTS[i];
         console.log(`starting test with size = ${n}`)
 
         // start fresh.
-        tree = new AVLTree();
-
-        // start timer.
-        let t0 = performance.now();
+        tree =  new AVLTree();
 
         // insert n values into the AVL tree. Expected O(n*log(n)) total.
+        let t0 = performance.now();
         for (let i=0; i<n; i++) {
             tree.insert(dataset[i]);
         }
+        let tf = performance.now();
 
         // finish timer and print result.
-        let tf = performance.now();
         let time = tf - t0;
-        // console.log(`dataset size of: ${n}, height of root: ${tree.tree.treeRoot.height}`, tree);
+        console.log(`dataset size of: ${n}, height of root: ${tree.tree.treeRoot.height}`, tree);
         let height = tree.tree.treeRoot.height
-        results.push({n, time, height});
+        results.push({
+            x: n,
+            y: time
+        });
+        callback(results.slice(-1)[0]);
     }
     console.log(results);
-
-    // add data to graph.
-    let data = [];
-    for (let row of results) {
-        let item = {
-            x: row.n,
-            y: row.time
-        };
-        data.push(item);
-    }
-    return data;
+    return results;
 }
