@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>AVL tree test</title>
+
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+        </script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_SVG' async></script>
+
+    </head>
+    <body>
+        <main>
+            <h1 class="center">Testing AVL Tree Performance</h1>
+            <hr>
+            <h2>Inserting $n$ Values</h2>
+            <p>Creating an empty AVL tree, and inserting $n$ random values.  Each <code>Insert</code> operation has a worst-case complexity of $\mathcal{O}(\log{}n)$, so theoretically the worst-case complexity of calling <code>insert</code> $n$ times results in $\mathcal{O}(n\log{}n)$ complexity.</p>
+
+            <h2>Graphing the Tests</h2>
+            <p>The <b>x-axis</b> is the number of items, $n$ to be inserted.  In the context of a game, each one of these items is a moving object that can have collisions with any one of the other objects.</p>
+            <p>The <b>y-axis</b> is the number of milliseconds that was taken to insert all $n$ of the items into an empty AVL tree.</p>
+            <figure>
+                <div id="infoBox" class="center"><div id="info"></div></div>
+                <canvas id="myChart" width="400" height="400"></canvas>
+                <!-- <figcaption></figcaption> -->
+            </figure>
+
+            <h2>Why tho?</h2>
+            <p>This AVL tree will be used to create an <b>Interval Tree</b>, which will then be the main data structure that allows Collision Detection to happen through the Sweep Method.</p>
+            <hr>
+        </main>
+
+        <style>
+        h2 {
+            /* border-bottom: 1px solid black; */
+        }
+        figure {
+            border: 1px solid lightgray;
+            padding: 0.5em;
+        }
+        figcaption {
+            padding: 1em 2em 0 2em;
+            text-align: center;
+        }
+        main>p {
+            margin-left: 1em;
+        }
+        main {
+            max-width: 50em;
+            margin: auto;
+        }
+        #info {
+            font-size:200%;
+            background:cyan;
+        }
+        #infoBox {
+
+        }
+        #errorInfo {
+            background:pink;
+            padding:1em;
+        }
+        .center {
+            text-align: center;
+        }
+
+        </style>
+
+        <script src="src/avltree.js" type="text/javascript" charset="utf-8"></script>
+        <script src="src/tests/avltree_test.js" type="text/javascript" charset="utf-8"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
+
+        <script async defer type="text/javascript" charset="utf-8">
+        let label = 'AVL insertion test.';
+        let ctx = document.getElementById("myChart").getContext('2d');
+        let chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: label,
+                    data: [{x:0, y:0}],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                }],
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'linear',
+                        position: 'bottom',
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'number of inserts (n)',
+                        },
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'time (milliseconds)',
+                        },
+                    }]
+                },
+            }
+        });
+
+        function addData(chart, label, data) {
+            // chart.data.labels.push(label);
+            chart.data.datasets.forEach((dataset) => {
+                dataset.data.push(data);
+            });
+            chart.update();
+        }
+
+
+        function callback(data) {
+            addData(chart, '', data);
+        }
+
+
+        let info = document.querySelector('#info')
+        let infoBox = document.querySelector('#infoBox')
+
+        const delay = ms => new Promise(res => setTimeout(res, ms));
+        const f = async () => {
+            info.innerText = 'Running Tests...';
+            await delay(1000)
+            let result;
+            try {
+                result = runTest(callback);
+                info.innerText = 'Done!';
+                info.style.background = 'lightGreen';
+                let csv = '';
+                for (let o of result) {
+                    csv += `${o.x}, ${o.y}` + '\n';
+                }
+                console.log(csv);
+            } catch(err) {
+                info.innerText = `Error during Test!`;
+                infoBox.insertAdjacentHTML('afterend', `<pre id="errorInfo">${err}</pre>`)
+                info.style.background = 'red';
+            }
+        };
+        f();
+        </script>
+    </body>
+</html>
