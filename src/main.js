@@ -18,7 +18,19 @@ function getRandomColor() {
     var letters = '0123456789ABCDEF';
     var color = '#';
     for (var i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function getRandomColorLowRed() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (let i = 0; i < 2; i++) {
+        color += letters[Math.floor(Math.random() * 5)];
+    }
+    for (let i = 0; i < 4; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
 }
@@ -28,6 +40,7 @@ let game = {};
 
 // encapuslated program content.
 (function(){
+"use strict";
 
 class Circle {
     constructor(x, y, r) {
@@ -49,6 +62,9 @@ class Circle {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+    }
+    hasCollision(b) {
+        return (((this.x - b.x)**2 + (this.y - b.y)**2) <= (this.r + b.r)**2)
     }
     static compareX(a, b) {
         return (a.x - b.x);
@@ -144,13 +160,14 @@ class Scene {
 function addRandomCircles(scene) {
     let w = scene.canvas.width;
     let h = scene.canvas.height;
-    let n = 20;
+    let n = 100;
     for (let i=0; i<n; i++) {
         let r = Math.randintNorm(w/100, w/25);
         let x = Math.randint(0+r, w-r);
         let y = Math.randint(0+r, h-r);
         let o = new Circle(x, y, r);
         o.fillStyle = getRandomColor();
+        o.fillStyle = getRandomColorLowRed();
         o.vx = (2*Math.random()-0.5) * 3;
         o.vy = (2*Math.random()-0.5) * 3;
         let key = i;
@@ -173,12 +190,42 @@ function addRandomCircles(scene) {
  * @param {function} high - f:(object)=>Number  ~ the high number in interval.
  */
 function sweep(arr, low, high) {
-    ret = [];
-    stack = [];
+    let ret = [];
+    let stack = [];
     for (let n of arr) {
         let L = low(n);
         let filterFunc = (v)=> (L <= high(v));
-        for (let x of stack.filter(filterFunc)) {
+        stack = stack.filter(filterFunc);
+        for (let x of stack) {
+            ret.push([n, x]);
+        }
+        stack.push(n);
+    }
+    return ret;
+}
+
+function doubleSweep(scene) {
+    let ret = [];
+    let s = new Set();
+    let arr = Array.from(scene.objects.values()).sort(Circle.compareX);
+    let stack = [];
+    for (let n of arr) {
+        let L = Circle.lowX(n);
+        let filterFunc = (v)=> (L <= Circle.highX(v));
+        stack = stack.filter(filterFunc);
+        for (let x of stack) {
+            s.add(n);
+            s.add(x);
+        }
+        stack.push(n);
+    }
+    arr = Array.from(s).sort(Circle.compareY);
+    stack = [];
+    for (let n of arr) {
+        let L = Circle.lowY(n);
+        let filterFunc = (v)=> (L <= Circle.highY(v));
+        stack = stack.filter(filterFunc);
+        for (let x of stack) {
             ret.push([n, x]);
         }
         stack.push(n);
@@ -229,6 +276,33 @@ function exampleSorts(scene) {
     }
 }
 
+
+function example2(scene) {
+    // let lowX = Circle.lowX;
+    // let lowY = Circle.lowY;
+    // let highX = Circle.highX;
+    // let highY = Circle.highY;
+    let ctx = scene.ctx;
+    let arr = doubleSweep(scene);
+    for (let [a,b] of arr) {
+        if (a.hasCollision(b)) {
+            // ctx.fillStyle = 'rgba(0, 200, 0, 0.2)';
+            // ctx.fillRect(a.x, 0, (b.x - a.x), scene.height);
+            // scene.ctx.fillRect(0, a.y, scene.width, (b.y - a.y));
+            // scene.ctx.fillRect(0, a.y, scene.width, (b.y - a.y));
+            ctx.fillStyle = 'rgba(250, 0, 0, 0.6)';
+            ctx.fillRect(a.x, a.y, (b.x - a.x), (b.y -a.y));
+            ctx.strokeStyle = 'white'
+            ctx.strokeWidth = 10;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+            ctx.strokeWidth = 1;
+        }
+    }
+}
+
 function main() {
     let scene = new Scene('#mainCanvas');
     addRandomCircles(scene);
@@ -239,7 +313,8 @@ function main() {
         scene.update();
         scene.clear();
         scene.display();
-        exampleSorts(scene);
+        // exampleSorts(scene);
+        example2(scene);
         window.requestAnimationFrame(loop);
     }
     loop();
