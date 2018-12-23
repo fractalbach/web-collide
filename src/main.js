@@ -50,6 +50,38 @@ class Circle {
         ctx.fill();
         ctx.stroke();
     }
+    static compareX(a, b) {
+        return (a.x - b.x);
+    }
+    static compareY(a, b) {
+        return (a.y - b.y);
+    }
+    static lowX(o) {
+        return o.x - o.r;
+    }
+    static lowY(o) {
+        return o.y - o.r;
+    }
+    static highX(o) {
+        return o.x + o.r;
+    }
+    static highY(o) {
+        return o.y + o.r;
+    }
+}
+
+class VerticalLine {
+    constructor(x, h) {
+        this.x = x;
+        this.h = h;
+    }
+    draw(ctx) {
+        ctx.strokeStyle = 'black'
+        ctx.beginPath();
+        ctx.moveTo(this.x, 0);
+        ctx.lineTo(this.x, this.h);
+        ctx.stroke();
+    }
 }
 
 class Scene {
@@ -57,6 +89,8 @@ class Scene {
         this.canvas = document.querySelector(canvasID);
         this.ctx = this.canvas.getContext('2d');
         this.objects = new Map();
+        this.width = this.canvas.width;
+        this.height = this.canvas.height;
     }
     add(key, item) {
         this.objects.set(key, item);
@@ -110,7 +144,7 @@ class Scene {
 function addRandomCircles(scene) {
     let w = scene.canvas.width;
     let h = scene.canvas.height;
-    let n = 100;
+    let n = 20;
     for (let i=0; i<n; i++) {
         let r = Math.randintNorm(w/100, w/25);
         let x = Math.randint(0+r, w-r);
@@ -124,6 +158,77 @@ function addRandomCircles(scene) {
     }
 }
 
+
+/** @function
+ * @name Sweep
+ *
+ * Sweep will identify overlapping intervals in a sorted array.
+ * The _low_ and _high_ functions should return a Number that correspond to
+ * the lower and higher numbers of the interval: (lower, higher).
+ * Sweep will return a set of object pairs: (object, object) that represent
+ * pairs of colliding objects.
+ *
+ * @param {Array} arr - The sorted array containing objects.
+ * @param {function} low - f:(object)=>Number   ~ the low number in interval.
+ * @param {function} high - f:(object)=>Number  ~ the high number in interval.
+ */
+function sweep(arr, low, high) {
+    ret = [];
+    stack = [];
+    for (let n of arr) {
+        let L = low(n);
+        let filterFunc = (v)=> (L <= high(v));
+        for (let x of stack.filter(filterFunc)) {
+            ret.push([n, x]);
+        }
+        stack.push(n);
+    }
+    return ret;
+}
+
+
+function drawVerticalBoxes(scene, low1, high1, low2, high2) {
+    let x0 = Math.max(low1, low2);
+    let xf = Math.min(high1, high2);
+    let w = xf - x0;
+    let h = scene.height;
+    scene.ctx.fillStyle = 'rgba(200, 0, 0, 0.2)';
+    scene.ctx.fillRect(x0, 0, w, h);
+    // let v1 = new VerticalLine(x0, scene.height);
+    // let v2 = new VerticalLine(xf, scene.height);
+    // v1.draw(scene.ctx);
+    // v2.draw(scene.ctx);
+}
+
+
+function drawHorizontalBoxes(scene, low1, high1, low2, high2) {
+    let y0 = Math.max(low1, low2);
+    let yf = Math.min(high1, high2);
+    let w = scene.width;
+    let h = yf - y0;
+    scene.ctx.fillStyle = 'rgba(0, 200, 0, 0.2)';
+    scene.ctx.fillRect(0, y0, w, h);
+}
+
+
+function exampleSorts(scene) {
+    let size = scene.objects.size;
+    let low = Circle.lowX;
+    let high = Circle.highX;
+    let arr = Array.from(scene.objects.values()).sort(Circle.compareX);
+    arr = sweep(arr, low, high);
+    for (let [a,b] of arr) {
+        drawVerticalBoxes(scene, low(a), high(a), low(b), high(b));
+    }
+    low = Circle.lowY;
+    high = Circle.highY;
+    arr = Array.from(scene.objects.values()).sort(Circle.compareY);
+    arr = sweep(arr, low, high);
+    for (let [a,b] of arr) {
+        drawHorizontalBoxes(scene, low(a), high(a), low(b), high(b));
+    }
+}
+
 function main() {
     let scene = new Scene('#mainCanvas');
     addRandomCircles(scene);
@@ -134,6 +239,7 @@ function main() {
         scene.update();
         scene.clear();
         scene.display();
+        exampleSorts(scene);
         window.requestAnimationFrame(loop);
     }
     loop();
