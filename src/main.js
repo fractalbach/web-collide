@@ -107,9 +107,12 @@ class Scene {
         this.objects = new Map();
         this.width = this.canvas.width;
         this.height = this.canvas.height;
+        this.sortedObjects = Array.from(this.objects.values()).sort(Circle.compareX);
+        this.secondarySorted;
     }
     add(key, item) {
         this.objects.set(key, item);
+        this.sortedObjects = Array.from(this.objects.values()).sort(Circle.compareX);
     }
     clear() {
         let w = this.canvas.width;
@@ -157,25 +160,6 @@ class Scene {
     }
 }
 
-function addRandomCircles(scene) {
-    let w = scene.canvas.width;
-    let h = scene.canvas.height;
-    let n = 100;
-    for (let i=0; i<n; i++) {
-        let r = Math.randintNorm(w/100, w/25);
-        let x = Math.randint(0+r, w-r);
-        let y = Math.randint(0+r, h-r);
-        let o = new Circle(x, y, r);
-        o.fillStyle = getRandomColor();
-        o.fillStyle = getRandomColorLowRed();
-        o.vx = (2*Math.random()-0.5) * 3;
-        o.vy = (2*Math.random()-0.5) * 3;
-        let key = i;
-        scene.add(key, o);
-    }
-}
-
-
 /** @function
  * @name Sweep
  *
@@ -207,9 +191,10 @@ function sweep(arr, low, high) {
 function doubleSweep(scene) {
     let ret = [];
     let s = new Set();
-    let arr = Array.from(scene.objects.values()).sort(Circle.compareX);
+    // let arr = Array.from(scene.objects.values()).sort(Circle.compareX);
+    scene.sortedObjects.sort(Circle.compareX);
     let stack = [];
-    for (let n of arr) {
+    for (let n of scene.sortedObjects) {
         let L = Circle.lowX(n);
         let filterFunc = (v)=> (L <= Circle.highX(v));
         stack = stack.filter(filterFunc);
@@ -219,9 +204,9 @@ function doubleSweep(scene) {
         }
         stack.push(n);
     }
-    arr = Array.from(s).sort(Circle.compareY);
+    scene.secondarySorted = Array.from(s).sort(Circle.compareY);
     stack = [];
-    for (let n of arr) {
+    for (let n of scene.secondarySorted) {
         let L = Circle.lowY(n);
         let filterFunc = (v)=> (L <= Circle.highY(v));
         stack = stack.filter(filterFunc);
@@ -278,28 +263,69 @@ function exampleSorts(scene) {
 
 
 function example2(scene) {
-    // let lowX = Circle.lowX;
-    // let lowY = Circle.lowY;
-    // let highX = Circle.highX;
-    // let highY = Circle.highY;
     let ctx = scene.ctx;
     let arr = doubleSweep(scene);
     for (let [a,b] of arr) {
         if (a.hasCollision(b)) {
-            // ctx.fillStyle = 'rgba(0, 200, 0, 0.2)';
-            // ctx.fillRect(a.x, 0, (b.x - a.x), scene.height);
-            // scene.ctx.fillRect(0, a.y, scene.width, (b.y - a.y));
-            // scene.ctx.fillRect(0, a.y, scene.width, (b.y - a.y));
-            ctx.fillStyle = 'rgba(250, 0, 0, 0.6)';
-            ctx.fillRect(a.x, a.y, (b.x - a.x), (b.y -a.y));
-            ctx.strokeStyle = 'white'
-            ctx.strokeWidth = 10;
+            // ctx.fillStyle = 'rgba(250, 0, 0, 0.6)';
+            // ctx.fillRect(a.x, a.y, (b.x - a.x), (b.y - a.y));
+
+            ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
+
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = 'white'
             ctx.stroke();
-            ctx.strokeWidth = 1;
+            // ctx.strokeWidth = 1;
+
+            // let v2 = Math.sqrt((b.x - a.x)**2 + (b.y - a.y)**2)
+
+            // let temp;
+            // temp = a.vx;
+            // a.vx = b.vx;
+            // b.vx = temp;
+
+            // temp = a.vy;
+            // a.vy = b.vy;
+            // b.vy = temp;
+
+            let avx = (a.vx * (a.r - b.r) + (2 * b.r * b.vx)) / (a.r + b.r);
+            let avy = (a.vy * (a.r - b.r) + (2 * b.r * b.vy)) / (a.r + b.r);
+            let bvx = (b.vx * (b.r - a.r) + (2 * a.r * a.vx)) / (a.r + b.r);
+            let bvy = (b.vy * (b.r - a.r) + (2 * a.r * a.vy)) / (a.r + b.r);
+
+            a.vx = avx;
+            a.vy = avy;
+            b.vx = bvx;
+            b.vy = bvy;
+
+            a.x += a.vx
+            a.y += a.vy
+            b.x += b.vx
+            b.y += b.vy
         }
+    }
+}
+
+
+
+function addRandomCircles(scene) {
+    let w = scene.canvas.width;
+    let h = scene.canvas.height;
+    let n = 100;
+    for (let i=0; i<n; i++) {
+        let r = Math.randintNorm(w/100, w/25);
+        let x = Math.randint(0+r, w-r);
+        let y = Math.randint(0+r, h-r);
+        let o = new Circle(x, y, r);
+        o.fillStyle = getRandomColor();
+        // o.fillStyle = getRandomColorLowRed();
+        o.vx = (2*Math.random()-0.5) * 3;
+        o.vy = (2*Math.random()-0.5) * 3;
+        let key = i;
+        scene.add(key, o);
     }
 }
 
