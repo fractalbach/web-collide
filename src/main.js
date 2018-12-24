@@ -301,10 +301,10 @@ function example2(scene) {
             b.vx = bvx;
             b.vy = bvy;
 
-            a.x += a.vx
-            a.y += a.vy
-            b.x += b.vx
-            b.y += b.vy
+            // a.x += a.vx
+            // a.y += a.vy
+            // b.x += b.vx
+            // b.y += b.vy
         }
     }
 }
@@ -316,14 +316,14 @@ function addRandomCircles(scene) {
     let h = scene.canvas.height;
     let n = 100;
     for (let i=0; i<n; i++) {
-        let r = Math.randintNorm(w/100, w/25);
+        let r = Math.randintNorm(w/75, w/25);
         let x = Math.randint(0+r, w-r);
         let y = Math.randint(0+r, h-r);
         let o = new Circle(x, y, r);
         o.fillStyle = getRandomColor();
         // o.fillStyle = getRandomColorLowRed();
-        o.vx = (2*Math.random()-0.5) * 3;
-        o.vy = (2*Math.random()-0.5) * 3;
+        o.vx = (2*Math.random()-0.5) * 4;
+        o.vy = (2*Math.random()-0.5) * 4;
         let key = i;
         scene.add(key, o);
     }
